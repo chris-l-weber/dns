@@ -42,10 +42,18 @@ class dns(Resource):
         return '', 204
 
     def post(self,name):
-        abort(404, message="Name not found")
+        abort(404, message="Post not Allowed")
 
     def put(self, name):
         args = parser.parse_args()
+        abort_if_name_doesnt_exist(name)
+        if (args['ip'] is None):
+            abort(404,message="Ip required")
+
+        ip = args['ip']
+        if not validIp(ip):
+            abort(404,message="Ip address Invalid:"+str(ip))
+
         ip = {'ip': args['ip']}
         DNS[name] = ip
         return ip, 201
@@ -67,12 +75,16 @@ class dnsList(Resource):
 
     def post(self):
         args = parser.parse_args()
+        
         if (args['name'] is None or args['ip'] is None):
-            abort(404,message="Name and ip required")    
+            abort(404,message="Name and ip required")
+
         name = args['name']
         ip = args['ip']
+        
         if not validIp(ip):
             abort(404,message="Ip address Invalid:"+str(ip))
+        
         if name in DNS:
             abort(404,message="Item already exists name:"+str(name))
 
