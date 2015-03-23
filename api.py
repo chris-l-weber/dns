@@ -15,6 +15,15 @@ def abort_if_name_doesnt_exist(name):
     if name not in DNS:
         abort(404, message="name {} doesn't exist".format(name))
 
+def validIp(ip):
+    try:
+        parts = ip.split('.')
+        return len(parts) == 4 and all(0 <= int(part) < 256 for part in parts)
+    except ValueError:
+        return False # one of the 'parts' not convertible to integer
+    except (AttributeError, TypeError):
+        return False # `ip` isn't even a string
+
 parser = reqparse.RequestParser()
 parser.add_argument('ip', type=str)
 parser.add_argument('name', type=str)
@@ -45,6 +54,7 @@ class dns(Resource):
 # dnsList
 #   shows a list of all Entries , and lets you POST to add new ips
 class dnsList(Resource):
+   
     def get(self):
         return DNS
 
@@ -60,10 +70,13 @@ class dnsList(Resource):
         if (args['name'] is None or args['ip'] is None):
             abort(404,message="Name and ip required")    
         name = args['name']
+        ip = args['ip']
+        if not validIp(ip):
+            abort(404,message="Ip address Invalid:"+str(ip))
         if name in DNS:
             abort(404,message="Item already exists name:"+str(name))
 
-        DNS[name] = {'ip': args['ip']}
+        DNS[name] = {'ip': ip}
         return DNS[name], 201
 
 ##
